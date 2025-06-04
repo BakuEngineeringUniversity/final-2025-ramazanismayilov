@@ -1,5 +1,5 @@
 {
-  "name": "final-2025-abdrhmnovvvali",
+  "name": "final-2025-ramazanismayilov",
   "version": "1.0.0",
   "description": "[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/9TlhEtrZ)",
   "main": "index.js",
@@ -9,16 +9,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BakuEngineeringUniversity/final-2025-abdrhmnovvvali.git"
+    "url": "git+https://github.com/BakuEngineeringUniversity/final-2025-ramazanismayilov.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/BakuEngineeringUniversity/final-2025-abdrhmnovvvali/issues"
+    "url": "https://github.com/BakuEngineeringUniversity/final-2025-ramazanismayilov/issues"
   },
-  "homepage": "https://github.com/BakuEngineeringUniversity/final-2025-abdrhmnovvvali#readme",
+  "homepage": "https://github.com/BakuEngineeringUniversity/final-2025-ramazanismayilov#readme",
   "dependencies": {
     "@tailwindcss/cli": "^4.1.8",
     "electron": "^36.3.2",
