@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="output.css" />
+    <title>DevToys</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/diff/5.1.0/diff.min.js"></script>
+    <!-- Include FileSaver.js for saving images -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"
+      integrity="sha512-Qlv6VSKh1stc/nLKjCwiYdSSZr1hOQvYdVN2CvMRsKbKn3x2ZWIiERvErnUwpdGaq93GIWLNmZQqW+YjwWS2jw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+      }
+
+      .sidebar-item:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .tool-content {
+        display: none;
+      }
+
+      .tool-content.active {
+        display: block;
+      }
+
+      .home-content {
+        display: block;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      /* Dark Mode Styles */
+      body.dark-mode {
+        background-color: #333;
+        color: #fff;
+      }
+
+      body.dark-mode .bg-gray-100 {
+        background-color: #333;
+      }
+
+      body.dark-mode .bg-gray-800 {
+        background-color: #222;
+      }
+
+      body.dark-mode .text-white {
+        color: #fff;
+      }
+
+      body.dark-mode .bg-gray-700 {
+        background-color: #444;
+      }
+
+      body.dark-mode input,
+      body.dark-mode textarea {
+        background-color: #444;
+        color: #fff;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-100 h-screen flex flex-col">
+    <header
+      class="bg-gray-800 text-white p-2 flex items-center justify-between shadow-md"
+    >
+      <div class="flex items-center">
+        <button class="mr-2 focus:outline-none" id="back-button">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <h1 class="text-lg font-medium">DevToys</h1>
+      </div>
+      <div>
+        <button class="mx-1 focus:outline-none">
+          <i class="fas fa-window-minimize"></i>
+        </button>
+        <button class="mx-1 focus:outline-none">
+          <i class="far fa-square"></i>
+        </button>
+        <button class="mx-1 focus:outline-none">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+      <aside class="w-64 bg-gray-800 text-white flex flex-col">
+        <div class="p-2">
+          <div class="relative">
+            <input
+              type="text"
+              placeholder="Type to search for tools..."
+              class="w-full bg-gray-700 text-white px-3 py-2 rounded focus:outline-none"
+              id="search-input"
+            />
+            <button
+              class="absolute right-2 top-2 text-gray-400 focus:outline-none"
+            >
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto">
+          <ul>
+            <li
+              class="sidebar-item px-4 py-2 flex items-center hover:bg-gray-700 cursor-pointer"
+              id="home-nav"
+            >
+              <i class="fas fa-home mr-3"></i>
+              <span>All tools</span>
+            </li>
+            <li
+              class="sidebar-item px-4 py-2 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+              data-section="converters-section"
+            >
+              <div class="flex items-center">
+                <i class="fas fa-exchange-alt mr-3"></i>
+                <span>Converters</span>
+              </div>
+            </li>
+            <li
+              class="sidebar-item px-4 py-2 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+              data-section="encoders-decoders-section"
+            >
+              <div class="flex items-center">
+                <i class="fas fa-code mr-3"></i>
+                <span>Encoders / Decoders</span>
+              </div>
+            </li>
+            <li
+              class="sidebar-item px-4 py-2 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+              data-section="formatters-section"
+            >
+              <div class="flex items-center">
+                <i class="fas fa-align-left mr-3"></i>
+                <span>Formatters</span>
+              </div>
+            </li>
+            <li
+              class="sidebar-item px-4 py-2 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+              data-section="generators-section"
+            >
+              <div class="flex items-center">
+                <i class="fas fa-magic mr-3"></i>
+                <span>Generators</span>
+              </div>
+            </li>
+            <li
+              class="sidebar-item px-4 py-2 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+              data-section="graphic-section"
+            >
+              <div class="flex items-center">
+                <i class="fas fa-image mr-3"></i>
+                <span>Graphic</span>
+              </div>
+            </li>
+            <li
+              class="sidebar-item px-4 py-2 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+              data-section="testers-section"
+            >
+              <div class="flex items-center">
+                <i class="fas fa-vial mr-3"></i>
+                <span>Testers</span>
+              </div>
+            </li>
+            <li
+              class="sidebar-item px-4 py-2 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+              data-section="text-section"
+            >
+              <div class="flex items-center">
+                <i class="fas fa-font mr-3"></i>
+                <span>Text</span>
+              </div>
+            </li>
+            <li
+              class="sidebar-item px-4 py-2 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+              data-section="compare-section"
+            >
+              <div class="flex items-center">
+                <i class="fas fa-balance-scale mr-3"></i>
+                <span>Compare</span>
+              </div>
+            </li>
+            <li
+              class="sidebar-item px-4 py-2 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+              data-section="validators-section"
+            >
+              <div class="flex items-center">
+                <i class="fas fa-check-circle mr-3"></i>
+                <span>Validators</span>
+              </div>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="mt-auto border-t border-gray-700">
+          <ul>
+            <li
+              class="sidebar-item px-4 py-2 flex items-center hover:bg-gray-700 cursor-pointer"
+            >
+              <i class="fas fa-heart mr-3"></i>
+              <span>Support the development</span>
+            </li>
+            <li
+              class="sidebar-item px-4 py-2 flex items-center hover:bg-gray-700 cursor-pointer"
+              data-section="manage-extensions-section"
+            >
+              <i class="fas fa-puzzle-piece mr-3"></i>
+              <span>Manage extensions</span>
+            </li>
+            <li
+              class="sidebar-item px-4 py-2 flex items-center hover:bg-gray-700 cursor-pointer"
+              data-section="settings-section"
+            >
+              <i class="fas fa-cog mr-3"></i>
+              <span>Settings</span>
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      <main class="flex-1 overflow-y-auto bg-purple-900">
+        <div id="home-content" class="home-content p-6">
+          <div class="mb-8">
+            <h1 class="text-4xl font-bold text-white">
+              Welcome to DevToys
+              <span class="text-sm font-normal text-gray-300"
+                >v2.0.0-pre.0</span
+              >
+            </h1>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+              class="bg-gray-800 bg-opacity-50 rounded-lg p-4 cursor-pointer hover:bg-opacity-70 transition"
+              data-section="encoders-decoders-section"
+            >
+              <div class="flex items-start">
+                <div class="bg-gray-700 p-4 rounded-lg mr-4">
+                  <div class="text-white text-4xl">
+                    <i class="fas fa-code"></i>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <div class="flex justify-between items-center">
+                    <h3 class="text-white font-bold">Encoders / Decoders</h3>
+                    <button class="text-white focus:outline-none">
+                      <i class="far fa-copy"></i>
+                    </button>
+                  </div>
+                  <p class="text-gray-300 text-sm mt-1">
+                    Encode and decode data
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-gray-800 bg-opacity-50 rounded-lg p-4 cursor-pointer hover:bg-opacity-70 transition"
+              data-section="formatters-section"
+            >
+              <div class="flex items-start">
+                <div class="bg-gray-700 p-4 rounded-lg mr-4">
+                  <div class="text-white text-4xl">
+                    <i class="fas fa-align-left"></i>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <div class="flex justify-between items-center">
+                    <h3 class="text-white font-bold">Formatters</h3>
+                    <button class="text-white focus:outline-none">
+                      <i class="far fa-copy"></i>
+                    </button>
+                  </div>
+                  <p class="text-gray-300 text-sm mt-1">Format code and data</p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-gray-800 bg-opacity-50 rounded-lg p-4 cursor-pointer hover:bg-opacity-70 transition"
+              data-section="generators-section"
+            >
+              <div class="flex items-start">
+                <div class="bg-gray-700 p-4 rounded-lg mr-4">
+                  <div class="text-white text-4xl">
+                    <i class="fas fa-magic"></i>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <div class="flex justify-between items-center">
+                    <h3 class="text-white font-bold">Generators</h3>
+                    <button class="text-white focus:outline-none">
+                      <i class="far fa-copy"></i>
+                    </button>
+                  </div>
+                  <p class="text-gray-300 text-sm mt-1">
+                    Generate various types of data
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-gray-800 bg-opacity-50 rounded-lg p-4 cursor-pointer hover:bg-opacity-70 transition"
+              data-section="converters-section"
+            >
+              <div class="flex items-start">
+                <div class="bg-gray-700 p-4 rounded-lg mr-4">
+                  <div class="text-white text-4xl">
+                    <i class="fas fa-exchange-alt"></i>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <div class="flex justify-between items-center">
+                    <h3 class="text-white font-bold">Converters</h3>
+                    <button class="text-white focus:outline-none">
+                      <i class="far fa-copy"></i>
+                    </button>
+                  </div>
+                  <p class="text-gray-300 text-sm mt-1">
+                    Convert between different data formats
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-gray-800 bg-opacity-50 rounded-lg p-4 cursor-pointer hover:bg-opacity-70 transition"
+              data-section="text-section"
+            >
+              <div class="flex items-start">
+                <div class="bg-gray-700 p-4 rounded-lg mr-4">
+                  <div class="text-white text-4xl">
+                    <i class="fas fa-font"></i>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <div class="flex justify-between items-center">
+                    <h3 class="text-white font-bold">Text Tools</h3>
+                    <button class="text-white focus:outline-none">
+                      <i class="far fa-copy"></i>
+                    </button>
+                  </div>
+                  <p class="text-gray-300 text-sm mt-1">
+                    Manipulate text with various tools
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-gray-800 bg-opacity-50 rounded-lg p-4 cursor-pointer hover:bg-opacity-70 transition"
+              data-section="testers-section"
+            >
+              <div class="flex items-start">
+                <div class="bg-gray-700 p-4 rounded-lg mr-4">
+                  <div class="text-white text-4xl">
+                    <i class="fas fa-vial"></i>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <div class="flex justify-between items-center">
+                    <h3 class="text-white font-bold">Testers</h3>
+                    <button class="text-white focus:outline-none">
+                      <i class="far fa-copy"></i>
+                    </button>
+                  </div>
+                  <p class="text-gray-300 text-sm mt-1">
+                    Test different functionalities
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Converters Section -->
+        <section id="converters-section" class="tool-content p-6">
+          <h2 class="text-2xl font-bold text-white mb-4">Converters</h2>
+          <p class="text-gray-300">
+            Tools for converting between different data formats.
+          </p>
+
+          <!-- JSON to YAML Converter -->
+          <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4 mb-4">
+            <h3 class="text-lg font-semibold text-white mb-2">
+              JSON to YAML Converter
+            </h3>
+            <textarea
+              id="json-input"
+              class="w-full h-32 bg-gray-700 text-white border rounded p-2 mb-2"
+              placeholder="Enter JSON"
+            ></textarea>
+            <button
+              id="convert-to-yaml"
+              class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Convert to YAML
+            </button>
+            <textarea
+              id="yaml-output"
+              class="w-full h-32 bg-gray-700 text-white border rounded p-2 mt-2"
+              placeholder="YAML output"
+              readonly
+            ></textarea>
+          </div>
+          <!-- Add more converters here -->
+        </section>
+
+        <!-- Encoders / Decoders Section -->
+        <section id="encoders-decoders-section" class="tool-content p-6">
+          <h2 class="text-2xl font-bold text-white mb-4">
+            Encoders / Decoders
+          </h2>
+          <p class="text-gray-300">Tools for encoding and decoding data.</p>
+
+          <!-- Base64 Encoder/Decoder -->
+          <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4 mb-4">
+            <h3 class="text-lg font-semibold text-white mb-2">
+              Base64 Encoder/Decoder
+            </h3>
+            <textarea
+              id="base64-input"
+              class="w-full h-32 bg-gray-700 text-white border rounded p-2 mb-2"
+              placeholder="Enter text"
+            ></textarea>
+            <div class="flex justify-around">
+              <button
+                id="encode-base64"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Encode
+              </button>
+              <button
+                id="decode-base64"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Decode
+              </button>
+            </div>
+            <textarea
+              id="base64-output"
+              class="w-full h-32 bg-gray-700 text-white border rounded p-2 mt-2"
+              placeholder="Result"
+              readonly
+            ></textarea>
+          </div>
+          <!-- Add more encoders/decoders here -->
+        </section>
+
+        <!-- Formatters Section -->
+        <section id="formatters-section" class="tool-content p-6">
+          <h2 class="text-2xl font-bold text-white mb-4">Formatters</h2>
+          <p class="text-gray-300">Tools for formatting code and data.</p>
+
+          <!-- JSON Formatter -->
+          <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4 mb-4">
+            <h3 class="text-lg font-semibold text-white mb-2">
+              JSON Formatter
+            </h3>
+            <textarea
+              id="json-formatter-input"
+              class="w-full h-32 bg-gray-700 text-white border rounded p-2 mb-2"
+              placeholder="Enter JSON to format"
+            ></textarea>
+            <button
+              id="format-json"
+              class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Format JSON
+            </button>
+            <textarea
+              id="json-formatter-output"
+              class="w-full h-32 bg-gray-700 text-white border rounded p-2 mt-2"
+              placeholder="Formatted JSON output"
+              readonly
+            ></textarea>
+          </div>
+          <!-- Add more formatters here -->
+        </section>
+
+        <!-- Generators Section -->
+        <section id="generators-section" class="tool-content p-6">
+          <h2 class="text-2xl font-bold text-white mb-4">Generators</h2>
+          <p class="text-gray-300">
+            Tools for generating various types of data.
+          </p>
+
+          <!-- UUID Generator -->
+          <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4 mb-4">
+            <h3 class="text-lg font-semibold text-white mb-2">
+              UUID Generator
+            </h3>
+            <button
+              id="generate-uuid"
+              class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Generate UUID
+            </button>
+            <input
+              type="text"
+              id="uuid-output"
+              class="w-full bg-gray-700 text-white border rounded p-2 mt-2"
+              value="Generated UUID will appear here"
+              readonly
+            />
+          </div>
+          <!-- Add more generators here -->
+        </section>
+
+        <!-- Graphic Section -->
+        <section id="graphic-section" class="tool-content p-6">
+          <h2 class="text-2xl font-bold text-white mb-4">Graphic</h2>
+          <p class="text-gray-300">Tools for graphic manipulation.</p>
+
+          <!-- Image Converter -->
+          <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4 mb-4">
+            <h3 class="text-lg font-semibold text-white mb-2">
+              Image Converter (PNG to JPG)
+            </h3>
+            <input
+              type="file"
+              id="image-input"
+              accept="image/png"
+              class="text-white mb-2"
+            />
+            <button
+              id="convert-to-jpg"
+              class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Convert to JPG
+            </button>
+            <canvas id="image-canvas" class="hidden"></canvas>
+            <a id="download-link" class="hidden" download="converted.jpg"
+              >Download JPG</a
+            >
+          </div>
+        </section>
+
+        <!-- Testers Section -->
+        <section id="testers-section" class="tool-content p-6">
+          <h2 class="text-2xl font-bold text-white mb-4">Testers</h2>
+          <p class="text-gray-300">
+            Tools for testing different functionalities.
+          </p>
+
+          <!-- Regex Tester -->
+          <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4 mb-4">
+            <h3 class="text-lg font-semibold text-white mb-2">Regex Tester</h3>
+            <input
+              type="text"
+              id="regex-input"
+              class="w-full bg-gray-700 text-white border rounded p-2 mb-2"
+              placeholder="Enter Regex"
+            />
+            <textarea
+              id="test-string"
+              class="w-full h-32 bg-gray-700 text-white border rounded p-2 mb-2"
+              placeholder="Enter Test String"
+            ></textarea>
+            <button
+              id="test-regex"
+              class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Test Regex
+            </button>
+            <p class="mt-2 text-white">Match: <span id="regex-match"></span></p>
+          </div>
+        </section>
+
+        <!-- Text Section -->
+        <section id="text-section" class="tool-content p-6">
+          <h2 class="text-2xl font-bold text-white mb-4">Text Tools</h2>
+          <p class="text-gray-300">Various tools for manipulating text.</p>
+
+          <!-- Text Case Converter -->
+          <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4 mb-4">
+            <h3 class="text-lg font-semibold text-white mb-2">
+              Text Case Converter
+            </h3>
+            <textarea
+              id="text-case-input"
+              class="w-full h-32 bg-gray-700 text-white border rounded p-2 mb-2"
+              placeholder="Enter text"
+            ></textarea>
+            <div class="flex justify-around">
+              <button
+                id="to-uppercase"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                To Uppercase
+              </button>
+              <button
+                id="to-lowercase"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                To Lowercase
+              </button>
+              <button
+                id="to-titlecase"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                To Title Case
+              </button>
+            </div>
+            <textarea
+              id="text-case-output"
+              class="w-full h-32 bg-gray-700 text-white border rounded p-2 mt-2"
+              placeholder="Converted text"
+              readonly
+            ></textarea>
+          </div>
+          <!-- Add more text tools here -->
+        </section>
+
+        <!-- Compare Section -->
+        <section id="compare-section" class="tool-content p-6">
+          <h2 class="text-2xl font-bold text-white mb-4">Compare</h2>
+          <p class="text-gray-300">Tools for comparing text or data.</p>
+
+          <!-- Text Diff -->
+          <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4 mb-4">
+            <h3 class="text-lg font-semibold text-white mb-2">Text Diff</h3>
+            <div class="flex">
+              <textarea
+                id="text1"
+                class="w-1/2 h-32 bg-gray-700 text-white border rounded p-2 mr-2"
+                placeholder="Text 1"
+              ></textarea>
+              <textarea
+                id="text2"
+                class="w-1/2 h-32 bg-gray-700 text-white border rounded p-2 ml-2"
+                placeholder="Text 2"
+              ></textarea>
+            </div>
+            <button
+              id="compareTexts"
+              class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mt-2"
+            >
+              Compare Texts
+            </button>
+            <div
+              id="comparisonOutput"
+              class="w-full h-32 bg-gray-700 text-white border rounded p-2 mt-2 overflow-auto"
+            ></div>
+          </div>
+        </section>
+
+        <!-- Validators Section -->
+        <section id="validators-section" class="tool-content p-6">
+          <h2 class="text-2xl font-bold text-white mb-4">Validators</h2>
+          <p class="text-gray-300">Tools for validating data formats.</p>
+
+          <!-- JSON Validator -->
+          <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4 mb-4">
+            <h3 class="text-lg font-semibold text-white mb-2">
+              JSON Validator
+            </h3>
+            <textarea
+              id="json-validator-input"
+              class="w-full h-32 bg-gray-700 text-white border rounded p-2 mb-2"
+              placeholder="Enter JSON to validate"
+            ></textarea>
+            <button
+              id="validate-json"
+              class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Validate JSON
+            </button>
+            <p class="mt-2 text-white">
+              Validation Status: <span id="validation-status"></span>
+            </p>
+          </div>
+        </section>
+
+        <!-- Manage Extensions Section -->
+        <section id="manage-extensions-section" class="tool-content p-6">
+          <h2 class="text-2xl font-bold text-white mb-4">Manage Extensions</h2>
+          <p class="text-gray-300">Manage and install extensions.</p>
+          <p class="text-white">
+            This section is under development. Basic extension management will
+            be added soon.
+          </p>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings-section" class="tool-content p-6">
+          <h2 class="text-2xl font-bold text-white mb-4">Settings</h2>
+          <p class="text-gray-300">Customize the application.</p>
+
+          <!-- Dark Mode Toggle -->
+          <div class="flex items-center mb-4">
+            <label for="dark-mode-toggle" class="mr-2 text-white"
+              >Dark Mode:</label
+            >
+            <input
+              type="checkbox"
+              id="dark-mode-toggle"
+              class="form-checkbox h-5 w-5 text-purple-600"
+            />
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // --- Navigation ---
+        const sidebarItems = document.querySelectorAll(".sidebar-item");
+        const toolCards = document.querySelectorAll(".transition");
+        const toolContents = document.querySelectorAll(".tool-content");
+        const homeContent = document.getElementById("home-content");
+        const backButton = document.getElementById("back-button");
+        const homeNav = document.getElementById("home-nav");
+
+        toolContents.forEach((content) => (content.style.display = "none"));
+        homeContent.style.display = "block";
+
+        function showSection(sectionId) {
+          toolContents.forEach((content) => (content.style.display = "none"));
+          homeContent.style.display = "none";
+          const section = document.getElementById(sectionId);
+          if (section) {
+            section.style.display = "block";
+          }
+        }
+
+        sidebarItems.forEach((item) => {
+          item.addEventListener("click", function () {
+            const sectionId = this.dataset.section;
+            showSection(sectionId);
+          });
+        });
+
+        toolCards.forEach((card) => {
+          card.addEventListener("click", function () {
+            const sectionId = this.dataset.section;
+            showSection(sectionId);
+          });
+        });
+
+        backButton.addEventListener("click", function () {
+          toolContents.forEach((content) => (content.style.display = "none"));
+          homeContent.style.display = "block";
+        });
+
+        homeNav.addEventListener("click", function () {
+          toolContents.forEach((content) => (content.style.display = "none"));
+          homeContent.style.display = "block";
+        });
+
+        // --- Text Case Converter ---
+        const textCaseInput = document.getElementById("text-case-input");
+        const textCaseOutput = document.getElementById("text-case-output");
+        const toUppercaseButton = document.getElementById("to-uppercase");
+        const toLowercaseButton = document.getElementById("to-lowercase");
+        const toTitlecaseButton = document.getElementById("to-titlecase");
+
+        toUppercaseButton.addEventListener("click", function () {
+          textCaseOutput.value = textCaseInput.value.toUpperCase();
+        });
+
+        toLowercaseButton.addEventListener("click", function () {
+          textCaseOutput.value = textCaseInput.value.toLowerCase();
+        });
+
+        toTitlecaseButton.addEventListener("click", function () {
+          const text = textCaseInput.value;
+          const titleCaseText = text.replace(/\w\S*/g, function (txt) {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+          });
+          textCaseOutput.value = titleCaseText;
+        });
+
+        // --- UUID Generator ---
+        const generateUuidButton = document.getElementById("generate-uuid");
+        const uuidOutput = document.getElementById("uuid-output");
+
+        generateUuidButton.addEventListener("click", function () {
+          uuidOutput.value = generateUUID();
+        });
+
+        function generateUUID() {
+          return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+            /[xy]/g,
+            function (c) {
+              var r = (Math.random() * 16) | 0,
+                v = c == "x" ? r : (r & 0x3) | 0x8;
+              return v.toString(16);
+            }
+          );
+        }
+
+        // --- JSON to YAML Converter ---
+        const jsonInput = document.getElementById("json-input");
+        const yamlOutput = document.getElementById("yaml-output");
+        const convertToYamlButton = document.getElementById("convert-to-yaml");
+
+        convertToYamlButton.addEventListener("click", function () {
+          try {
+            const json = JSON.parse(jsonInput.value);
+            yamlOutput.value = jsyaml.dump(json);
+          } catch (error) {
+            yamlOutput.value = "Error: Invalid JSON";
+          }
+        });
+
+        // --- JSON Formatter ---
+        const jsonFormatterInput = document.getElementById(
+          "json-formatter-input"
+        );
+        const jsonFormatterOutput = document.getElementById(
+          "json-formatter-output"
+        );
+        const formatJsonButton = document.getElementById("format-json");
+
+        formatJsonButton.addEventListener("click", function () {
+          try {
+            const json = JSON.parse(jsonFormatterInput.value);
+            const formattedJson = JSON.stringify(json, null, 2);
+            jsonFormatterOutput.value = formattedJson;
+          } catch (error) {
+            jsonFormatterOutput.value = "Error: Invalid JSON";
+          }
+        });
+
+        // --- Base64 Encoder/Decoder ---
+        const base64Input = document.getElementById("base64-input");
+        const base64Output = document.getElementById("base64-output");
+        const encodeBase64Button = document.getElementById("encode-base64");
+        const decodeBase64Button = document.getElementById("decode-base64");
+
+        encodeBase64Button.addEventListener("click", function () {
+          try {
+            base64Output.value = btoa(base64Input.value);
+          } catch (error) {
+            base64Output.value = "Error: Encoding failed";
+          }
+        });
+
+        decodeBase64Button.addEventListener("click", function () {
+          try {
+            base64Output.value = atob(base64Input.value);
+          } catch (error) {
+            base64Output.value = "Error: Decoding failed";
+          }
+        });
+
+   // --- Text Diff ---
+const text1Input = document.getElementById("text1");
+const text2Input = document.getElementById("text2");
+const compareTextsButton = document.getElementById("compareTexts");
+const comparisonOutput = document.getElementById("comparisonOutput");
+console.log(compareTextsButton)
+
+compareTextsButton.onclick = function (){
+
+    
+    const text1 = document.getElementById("text1").value;
+    const text2 = document.getElementById("text2").value;
+
+    if(text1 == text2){
+        comparisonOutput.innerHTML = "Beraberdir"
+    }
+    else{
+        comparisonOutput.innerHTML = "Beraber Deyil"
+
+    }
+    
+  }
+/*
+function compareTexts() {
+  const text1 = text1Input.value;
+  const text2 = text2Input.value;
+
+  const diff = Diff.diffChars(text1, text2);
+
+  comparisonOutput.innerHTML = "";
+  diff.forEach((part) => {
+    const color = part.added ? "green" : part.removed ? "red" : "grey";
+    const span = document.createElement("span");
+    span.style.color = color;
+    span.appendChild(document.createTextNode(part.value));
+    comparisonOutput.appendChild(span);
+  });
+}
+*/
+
+        // --- JSON Validator ---
+        const jsonValidatorInput = document.getElementById(
+          "json-validator-input"
+        );
+        const validateJsonButton = document.getElementById("validate-json");
+        const validationStatus = document.getElementById("validation-status");
+
+        validateJsonButton.addEventListener("click", function () {
+          try {
+            JSON.parse(jsonValidatorInput.value);
+            validationStatus.textContent = "Valid JSON";
+            validationStatus.style.color = "green";
+          } catch (error) {
+            validationStatus.textContent = "Invalid JSON: " + error.message;
+            validationStatus.style.color = "red";
+          }
+        });
+
+        // --- Image Converter (PNG to JPG) ---
+        const imageInput = document.getElementById("image-input");
+        const convertToJpgButton = document.getElementById("convert-to-jpg");
+        const imageCanvas = document.getElementById("image-canvas");
+        const downloadLink = document.getElementById("download-link");
+        const ctx = imageCanvas.getContext("2d");
+
+        convertToJpgButton.addEventListener("click", function () {
+          const file = imageInput.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const img = new Image();
+              img.onload = function () {
+                imageCanvas.width = img.width;
+                imageCanvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                const jpgDataUrl = imageCanvas.toDataURL("image/jpeg");
+                downloadLink.href = jpgDataUrl;
+                downloadLink.classList.remove("hidden");
+              };
+              img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+          } else {
+            alert("Please select a PNG image.");
+          }
+        });
+
+        // --- Regex Tester ---
+        const regexInput = document.getElementById("regex-input");
+        const testStringInput = document.getElementById("test-string");
+        const testRegexButton = document.getElementById("test-regex");
+        const regexMatch = document.getElementById("regex-match");
+
+        testRegexButton.addEventListener("click", function () {
+          try {
+            const regex = new RegExp(regexInput.value);
+            const testString = testStringInput.value;
+            const result = regex.test(testString);
+            regexMatch.textContent = result ? "Yes" : "No";
+          } catch (error) {
+            regexMatch.textContent = "Invalid Regex: " + error.message;
+          }
+        });
+
+        // --- Dark Mode Toggle ---
+        const darkModeToggle = document.getElementById("dark-mode-toggle");
+        darkModeToggle.addEventListener("change", function () {
+          document.body.classList.toggle("dark-mode");
+        });
+
+        // --- Search Functionality ---
+        const searchInput = document.getElementById("search-input");
+        searchInput.addEventListener("input", function () {
+          const searchTerm = searchInput.value.toLowerCase();
+          sidebarItems.forEach((item) => {
+            const itemText = item.textContent.toLowerCase();
+            if (itemText.includes(searchTerm)) {
+              item.style.display = ""; // Show the item
+            } else {
+              item.style.display = "none"; // Hide the item
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
